@@ -1,0 +1,138 @@
+Playah — Feature List
+Version 2.9.0+17
+
+LIBRARY & PLAYBACK
+- Scans local folders for .mp3, .flac, .wav, .m4a, .aac, .aif/.aiff files
+- Reads embedded metadata (title, artist, album, artwork, release year) and lyrics
+- Home screen shows your library as an album grid, with Play and Shuffle-all buttons
+- Play button directly on each album card in the Home grid — starts that
+  album immediately without opening its detail page
+- Albums with no tracks in them no longer show up in the grid
+- Album Detail screen: two-column layout on wide windows (cover, title/artist,
+  stats, and a shuffle/play/repeat button trio on one side; a scrollable track
+  list on the other), stacking to one column on phone widths. The current
+  track is highlighted, and each row shows a play-count badge and the
+  album's release year alongside the duration
+- Edit a track's metadata (title, artist, album, track number, genre, year)
+  from its ⋮ menu — "Edit metadata". An Autofill button looks the song up
+  on MusicBrainz (free, no account needed) and lets you pick a match before
+  anything is overwritten
+- Autofill also fetches that match's cover art from the Cover Art Archive
+  and previews it before saving; tap the cover thumbnail any time to pick
+  artwork yourself from a local image file instead
+- Delete a song from its ⋮ menu — "Delete song" removes it from the library
+  and deletes the actual audio file from disk (confirms first; can't be undone)
+- Sidebar/drawer navigation: Albums, Playlists, Most Played, Recently Played,
+  Favorites, All Tracks
+- Sort button on All Tracks
+- Play Next / Add to Queue from any track's menu
+- Drag-to-reorder queue, with favorite and add-to-playlist buttons per row
+- Shuffle shows what the upcoming shuffled order actually is
+- When the queue runs out (repeat off), keeps playing with a random track
+  from a different album, like radio
+- Currently-playing album is visually marked on the Home grid
+- Resumes the last-playing track (queue, position, shuffle/repeat state)
+  when the app is relaunched
+- Background playback on Android via a foreground media service — music
+  keeps playing when the app is backgrounded, with lock screen/notification
+  play, pause, skip controls
+
+NOW PLAYING
+- Full-bleed album artwork with title/artist overlay
+- Lyrics panel floats in front of the artwork as a centered, framed card
+  inset on all sides (not anchored to the bottom edge) — synced lyrics
+  highlight the current line larger than the rest; fetched online
+  (lrclib.net) as a fallback when a track has no embedded lyrics and
+  there's a connection
+- Colorful "waveform" playback bar: the played portion renders as bars
+  that gently animate while playing, the remaining time as small outline
+  dots — tap or drag anywhere to seek. Five round transport buttons
+  (shuffle/prev/play-pause/next/repeat, shuffle and repeat highlighted
+  when active) plus favorite and volume
+- This playback bar is shared between the docked bar (present on every
+  screen — tap it to expand/collapse Now Playing) and the bottom of the
+  expanded Now Playing screen, so both always look identical
+- Responsive layout: two-column (art+lyrics / queue) on wide windows,
+  stacked on narrow ones; the playback bar itself also collapses to a
+  stacked, volume-slider-free layout on phone widths
+
+YOUTUBE MUSIC IMPORT
+- On the Playlists screen, "Play from YouTube link" — paste a YouTube Music
+  (or regular YouTube) playlist link and it's saved as a real Playah
+  playlist and starts playing immediately
+- Saved for good, so you can come back and play it again later — doing so
+  needs an internet connection each time to resolve a fresh (short-lived)
+  audio stream per track; these tracks always stream, there's no download/
+  offline option
+- Uses an unofficial extraction method (no public API exists for this,
+  same approach FOSS players like NewPipe use) — can break if YouTube
+  changes something server-side, and technically isn't sanctioned by
+  YouTube's Terms of Service
+- The extraction library (youtube_explode_dart) is pinned to an unmerged
+  upstream fix (github.com/Hexer10/youtube_explode_dart PR #380) instead
+  of its normal pub.dev release, because the published 3.1.0 can't list
+  tracks in any playlist (returns zero every time) against YouTube's
+  current playlist page format — switch back to a normal version
+  constraint once that fix ships in a release
+- Resolving/opening a track's stream now times out after 15s instead of
+  being able to hang forever — a flaky stream open used to be able to
+  leave "Loading playlist…" stuck with no way out; now it falls through
+  to the normal skip-to-next-track behavior like any other broken track
+- Stream-quality selection now probes candidates instead of always taking
+  the highest-bitrate one — YouTube's CDN can 403 specific
+  video+format combinations unpredictably, so the app tries the next-best
+  quality automatically instead of the whole track just failing
+- Imported tracks live only on the Playlists screen — they never show up
+  in All Tracks, Most Played, Recently Played, Favorites, or search
+- A track that fails to load gets one automatic retry before the queue
+  skips past it, and skipping now shows a brief on-screen message naming
+  the track — YouTube's CDN can reject a valid request unpredictably, so
+  a skip is now visible instead of the queue silently jumping ahead
+- "Download from YouTube link" on the Playlists screen downloads every
+  track in a pasted playlist as a real local mp3 (via yt-dlp's audio
+  extraction, needs ffmpeg alongside yt-dlp) instead of streaming it —
+  saved into a "YouTube Downloads" folder inside your library folder,
+  so playback afterward needs no internet connection
+- Any already-imported (streamed) YouTube track can be converted to a
+  permanent local mp3 individually too, via "Download to library" on its
+  ⋮ menu — it's swapped in wherever the streamed version was (queue,
+  playlists) once the download finishes
+- Both need a library folder already added first (Settings) — downloads
+  need somewhere a scan will actually find them
+
+THEMING
+- Fully custom theme: background, sidebar, accent, and text colors
+- Optional custom background image
+- Built-in preset palettes alongside the custom theme option
+
+PLATFORMS
+- Linux desktop build with a proper .desktop launcher and custom app icon
+  (shows in app search, dash, taskbar, and Alt-Tab)
+- Android build (tested on a Samsung Galaxy A13), installed via adb,
+  with a matching custom rounded app icon
+- Original hand-drawn rock-hand/flame/headphones icon (no stock imagery)
+
+- Most Played list now shows each track's play count next to its duration
+
+BUGFIXES (2.8.1+14)
+- Auto-advance to the next track could silently stall on a file that failed
+  to load (moved/deleted/corrupted since the last scan) — playback now
+  auto-skips past it instead of going quiet until you hit "next" yourself
+- Synced lyrics lines that wrapped to 2-3 lines were being clipped/overdrawn
+  by the next line instead of shown in full
+
+BUGFIXES (2.8.2+15)
+- Dropdown/⋮ menus (track actions, sort, queue) now use the app's chunky
+  outline sticker style instead of Flutter's plain default menu look
+- Most Played, Recently Played, Playlists, and Favorites were all silently
+  forced into alphabetical order — their intended order (play count,
+  recency, manual order) was being overwritten right after loading. Now
+  only screens with an actual sort menu (All Tracks) get re-sorted
+- Play count was incrementing the moment a track started, so skipping a
+  song early still counted it as "played" — it now only counts once a
+  track finishes naturally
+
+---
+Known rough edges / not yet built:
+- iOS is untested/unbuilt
+- No streaming service integration (by design — fully local player)
