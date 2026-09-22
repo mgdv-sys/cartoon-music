@@ -52,3 +52,6 @@ app.*.map.json
 /android/app/.cxx/
 /android/.gradle/
 /android/.kotlin/
+
+# Packaged release artifacts (AppImage, Windows zip) — built by CI, not committed
+/dist/
