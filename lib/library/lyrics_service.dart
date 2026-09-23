@@ -47,7 +47,32 @@ class LyricsService {
     return ParsedLyrics(plainText: raw.trim().isEmpty ? null : raw.trim());
   }
 
+  // YouTube titles/channels carry noise lrclib's records don't, so a raw
+  // lookup misses: "Song (Official Video)", "Artist - Topic", "Artist - Song".
+  static final _titleNoise = RegExp(
+    r'\s*[\(\[][^\)\]]*(official|video|audio|lyric|visualizer|\bhd\b|4k)[^\)\]]*[\)\]]',
+    caseSensitive: false,
+  );
+  static final _artistNoise = RegExp(r'\s*(-\s*topic|vevo)$', caseSensitive: false);
+
   static Future<ParsedLyrics?> fetchFromLrclib({
+    required String title,
+    required String artist,
+    required String album,
+    required Duration duration,
+  }) async {
+    final cleanTitle = title.replaceAll(_titleNoise, '').trim();
+    final cleanArtist = artist.replaceAll(_artistNoise, '').trim();
+    final exact = await _fetchExact(title: cleanTitle, artist: cleanArtist, album: album, duration: duration);
+    if (exact != null) return exact;
+
+    // "Artist - Song" packed into the title (common for YouTube uploads).
+    final split = cleanTitle.split(' - ');
+    if (split.length == 2) return _searchFallback(split[1].trim(), split[0].trim());
+    return null;
+  }
+
+  static Future<ParsedLyrics?> _fetchExact({
     required String title,
     required String artist,
     required String album,
@@ -61,7 +86,7 @@ class LyricsService {
         'duration': duration.inSeconds.toString(),
       });
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
-      if (res.statusCode != 200) return _searchFallback(title, artist);
+      if (res.statusCode != 200) return await _searchFallback(title, artist);
       final json = jsonDecode(res.body) as Map<String, dynamic>;
       return _fromLrclibJson(json);
     } catch (_) {
