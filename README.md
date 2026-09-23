@@ -7,6 +7,8 @@ your library — no streaming account, no subscription, all playback local.
 
 ![Playah screenshot](docs/screenshot.png)
 
+> Built entirely through vibe coding — every line written by prompting an AI assistant.
+
 ## Features
 
 **Library & playback**
