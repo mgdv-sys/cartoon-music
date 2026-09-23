@@ -18,9 +18,11 @@ class YoutubeDownloadIndicator extends StatelessWidget {
     if (!app.downloadingYoutubePlaylist) return const SizedBox.shrink();
 
     final total = app.youtubePlaylistDownloadTotal;
-    final label = total > 0
-        ? 'Downloading ${app.youtubePlaylistDownloadProgress}/$total…'
-        : 'Fetching…';
+    final queued = app.pendingYoutubeDownloads;
+    final label = (total > 0
+            ? 'Downloading ${app.youtubePlaylistDownloadProgress}/$total'
+            : 'Fetching') +
+        (queued > 0 ? ' · $queued more queued…' : '…');
 
     return Positioned(
       right: 16,

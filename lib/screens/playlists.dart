@@ -87,11 +87,15 @@ class PlaylistsScreen extends StatelessWidget {
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Paste a YouTube Music song, album, or playlist link'),
+          minLines: 3,
+          maxLines: 6,
+          decoration: const InputDecoration(
+            hintText: 'Paste one or more YouTube Music song, album, or playlist links (one per line)',
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: const Text('Download')),
+          TextButton(onPressed: () => Navigator.of(context).pop(controller.text.trim()), child: const Text('Add to queue')),
         ],
       ),
     );
@@ -102,9 +106,9 @@ class PlaylistsScreen extends StatelessWidget {
     // progress instead, so the rest of the app stays clickable and the
     // user can navigate away while it downloads. The result/any error is
     // reported later via a SnackBar from AppState itself.
-    context.read<AppState>().startYoutubeDownload(url);
+    final queued = context.read<AppState>().startYoutubeDownload(url);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Downloading… you can keep using the app.')),
+      SnackBar(content: Text('Queued $queued ${queued == 1 ? 'link' : 'links'} — you can keep using the app.')),
     );
   }
 
@@ -151,7 +155,7 @@ class PlaylistsScreen extends StatelessWidget {
                     CartoonButton(
                       fill: Colors.white,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      onPressed: (app.importingYoutubePlaylist || app.downloadingYoutubePlaylist)
+                      onPressed: (app.importingYoutubePlaylist && !app.downloadingYoutubePlaylist)
                           ? null
                           : () => _downloadFromYoutubeLink(context),
                       child: Row(

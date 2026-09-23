@@ -528,8 +528,38 @@ class AppState extends ChangeNotifier {
   /// [downloadingYoutubePlaylist]/[youtubePlaylistDownloadProgress]/
   /// [youtubePlaylistDownloadTotal] still update live for a background
   /// progress indicator.
-  void startYoutubeDownload(String url) {
-    unawaited(_runYoutubeDownloadInBackground(url));
+  ///
+  /// [input] may hold several links (whitespace/newline separated). They join
+  /// a queue that downloads one at a time, since the progress state above is
+  /// single-instance. Returns how many links were queued.
+  int startYoutubeDownload(String input) {
+    final urls = input.split(RegExp(r'\s+')).where((s) => s.isNotEmpty).toList();
+    if (urls.isEmpty) return 0;
+    _pendingDownloadUrls.addAll(urls);
+    notifyListeners();
+    if (!_downloadRunnerActive) unawaited(_drainDownloadQueue());
+    return urls.length;
+  }
+
+  final List<String> _pendingDownloadUrls = [];
+  bool _downloadRunnerActive = false;
+  int get pendingYoutubeDownloads => _pendingDownloadUrls.length;
+
+  Future<void> _drainDownloadQueue() async {
+    _downloadRunnerActive = true;
+    try {
+      while (_pendingDownloadUrls.isNotEmpty) {
+        // A bulk "download queue" run shares the progress state; let it finish.
+        while (downloadingYoutubePlaylist) {
+          await Future.delayed(const Duration(seconds: 1));
+        }
+        final url = _pendingDownloadUrls.removeAt(0);
+        await _runYoutubeDownloadInBackground(url);
+        notifyListeners();
+      }
+    } finally {
+      _downloadRunnerActive = false;
+    }
   }
 
   Future<void> _runYoutubeDownloadInBackground(String url) async {
