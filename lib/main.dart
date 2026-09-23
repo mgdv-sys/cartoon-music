@@ -118,8 +118,6 @@ class _CartoonMusicAppState extends State<CartoonMusicApp> with WidgetsBindingOb
             builder: (context, child) => CallbackShortcuts(
               bindings: {
                 const SingleActivator(LogicalKeyboardKey.enter): app.togglePlayPause,
-                const SingleActivator(LogicalKeyboardKey.keyJ): app.skipPrevious,
-                const SingleActivator(LogicalKeyboardKey.keyK): app.skipNext,
                 const SingleActivator(LogicalKeyboardKey.arrowLeft): () =>
                     app.seekRelative(const Duration(seconds: -5)),
                 const SingleActivator(LogicalKeyboardKey.arrowRight): () =>
